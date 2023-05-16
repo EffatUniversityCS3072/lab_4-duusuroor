@@ -19,24 +19,42 @@ Load Data
 data(iris)
 # rename the dataset
 dataset <- iris
+
+summary(dataset)
 ```
 
+#createDataPartition to split the data into two
 Task1: Create a Validation/Training Dataset
 You need to split the loaded dataset into two, 80% of which we will use to train our models and 20% that we will hold back as a validation dataset.
 Hint: use createDataPartition function
 ```{r}
+# Create the training and test datasets
+set.seed(100)
 
+# Step 1: Get row numbers for the training data
+trainRowNumbers <- createDataPartition(dataset$Species, p=0.8, list=FALSE)
+
+# Step 2: Create the training  dataset
+trainData <- dataset[trainRowNumbers,]
+
+# Step 3: Create the test dataset
+testData <- dataset[-trainRowNumbers,]
 ```
 
 Task2: Summarize Dataset
 Use skimr library to summarize the dataset
 ```{r}
+library(skimr)
+skimmed <- skim_to_wide(trainData)
+skimmed
 
 ```
 
 Task3: split input and output
  It is the time to seperate the input attributes and  the output attributes. call the inputs attributes x and the output attribute (or class) y.
 ```{r}
+x = trainData[, 1:4]
+y = trainData[, 5]
 
 ```
 
@@ -53,14 +71,41 @@ Task5: Model Training
 Train 5 different algorithms using 'train' function:
 
 - Linear Discriminant Analysis (LDA)
-- Classification and Regression Trees (CART).
+- Classification and Regression Trees (rpart).
 - k-Nearest Neighbors (kNN).
-- Support Vector Machines (SVM) with a linear kernel.
-- Random Forest (RF)
+- Support Vector Machines (svmRadial) with a linear kernel.
+- Random Forest (rf)
 
 ```{r}
+# Set the seed for reproducibility
+set.seed(100)
 
+# Train the model using LDA.
+lda_model = train(Species ~ ., data=trainData, method='lda', trControl=control, metric=metric)
 
+# Set the seed for reproducibility
+set.seed(100)
+
+# Train the model using rpart.
+rpart_model = train(Species ~ ., data=trainData, method='rpart', trControl=control, metric=metric)
+
+# Set the seed for reproducibility
+set.seed(100)
+
+# Train the model using knn1.
+knn_model = train(Species ~ ., data=trainData, method='knn', trControl=control, metric=metric)
+
+# Set the seed for reproducibility
+set.seed(100)
+
+# Train the model using svmRadial.
+svmRadial_model = train(Species ~ ., data=trainData, method='svmRadial', trControl=control, metric=metric)
+
+# Set the seed for reproducibility
+set.seed(100)
+
+# Train the model using rf.
+rf_model = train(Species ~ ., data=trainData, method='rf', trControl=control, metric=metric)
 ```
 
 Task6: Select the Best Model
@@ -68,16 +113,23 @@ We now have 5 models and accuracy estimations for each. We need to compare the m
 Use resamples function to complete this task
 
 ```{r}
+# Compare model performances using resample()
+models_compare <- resamples(list(rf=rf_model, lda=lda_model, knn=knn_model, svmRadial=svmRadial_model))
+
+# Summary of the models performances
+summary(models_compare)
 
 
 ```
-What was the most accurate model?
+What was the most accurate model? knn or lda
 
 
 Task7: Make Prediction (Confusion Matrix)
 Now we want to get an idea of the accuracy of the best model on our validation set. Use 'predict' and confusionMatrix functions to complete this task.
 
 ```{r}
+predicted <- predict(knn_model, testData)
+confusionMatrix(reference = testData$Species, data = predicted)
 
 
 ```
